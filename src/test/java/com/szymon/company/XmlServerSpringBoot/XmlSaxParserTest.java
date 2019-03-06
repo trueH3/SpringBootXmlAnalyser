@@ -1,23 +1,31 @@
-
 package com.szymon.company.XmlServerSpringBoot;
 
 import java.time.LocalDateTime;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  *
  * @author szymon
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class XmlSaxParserTest {
-    
-   @Test
+
+    @Autowired
+    private XmlSaxParser parserService;
+
+    @Test
     public void shouldGiveCorrectValGivenUrl() {
 
         //Given
         String string = "https://trueh3.github.io/remoteTestFile.xml";
         //When
-        Result result = XmlSaxParser.parseXml(string);
+        Result result = parserService.parseXml(string);
         //Then
         assertEquals(string, result.getUrl());
         assertEquals(10L, result.getTotalPosts());
@@ -33,7 +41,7 @@ public class XmlSaxParserTest {
         //Given
         String string = "./src/test/java/com/szymon/company/XmlServerSpringBoot/localTestFile.xml";
         //When
-        Result result = XmlSaxParser.parseXml(string);
+        Result result = parserService.parseXml(string);
         //Then
         assertEquals(string, result.getUrl());
         assertEquals(8L, result.getTotalPosts());

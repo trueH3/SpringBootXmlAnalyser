@@ -6,15 +6,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.logging.Level;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -22,12 +18,12 @@ import org.xml.sax.SAXException;
  *
  * @author szymon
  */
-//@Component
+@Service
 public class XmlSaxParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmlSaxParser.class);
 
-    public static Result parseXml(String stringUrl) {
+    public Result parseXml(String stringUrl) {
         
         LOGGER.info("Starting to parse: " + stringUrl);
         

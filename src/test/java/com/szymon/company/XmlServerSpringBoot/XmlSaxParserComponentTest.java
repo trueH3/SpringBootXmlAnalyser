@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.szymon.company.XmlServerSpringBoot;
 
 import java.time.LocalDateTime;
@@ -16,14 +11,23 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.verify.VerificationTimes;
 import static org.junit.Assert.*;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  *
  * @author szymon
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class XmlSaxParserComponentTest {
 
     private ClientAndServer mockServer;
+    
+    @Autowired
+    private XmlSaxParser parserService;
 
     @Before
     public void startMockServer() {
@@ -54,7 +58,7 @@ public class XmlSaxParserComponentTest {
                 );
         //When
         String string = "http://127.0.0.1:1081/pathToSomeXml";
-        Result ResultTocheck = XmlSaxParser.parseXml(string);
+        Result ResultTocheck = parserService.parseXml(string);
         //Then
         mockServer.verify(HttpRequest.request().withPath("/pathToSomeXml"));
         mockServer.verify(HttpRequest.request("/pathToSomeXml"), VerificationTimes.once());

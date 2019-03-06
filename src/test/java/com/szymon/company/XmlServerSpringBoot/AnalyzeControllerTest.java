@@ -1,56 +1,106 @@
 package com.szymon.company.XmlServerSpringBoot;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.hamcrest.Matchers;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import static org.junit.Assert.*;
+import org.junit.Before;
 
 /**
  *
  * @author szymon
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@WebMvcTest
 public class AnalyzeControllerTest {
 
     @Autowired
-    AnalyzeController controller;
+    private MockMvc mockMvc;
 
-    @Test
-    public void checkIfReturnedMapContainsProperKeyVal() {
+    @MockBean
+    private XmlSaxParser parserService;
 
-        //When
-        Map<String, Object> map = controller.produceDataFromText("url1=https://trueh3.github.io/remoteTestFile.xml");
-        //Then
-        assertFalse(map.isEmpty());
-        assertTrue(map.containsKey("analyseDate"));
-        assertTrue(map.containsKey("details"));
-        assertTrue(map.get("analyseDate") instanceof LocalDateTime);
-        assertTrue(map.get("details") instanceof ArrayList);
+    @Before
+    public void init() {
+
+        //Given
+        Mockito.when(parserService.parseXml("http://example.com")).thenReturn(new Result("http://example.com", 7, LocalDateTime.of(1988, 5, 8, 12, 33, 22, 1), LocalDateTime.of(2019, 3, 4, 15, 12, 11, 7), 4, 2));
     }
 
     @Test
-    public void shouldReturnCorrectValues() {
+    public void shouldReturnStatus200WithWithRequestBodyJson() throws Exception {
 
-        //Given
-        Map <String, Object> inputMap = new HashMap<>();
-        inputMap.put("url1", "https://trueh3.github.io/remoteTestFile.xml");
-        //When
-        Map<String, Object> outputMap = controller.produceDataFromJson(inputMap);
-        List<Result> list = (List)outputMap.get("details");
-        Result r = list.get(0);
         //Then
-        assertEquals(10L, r.getTotalPosts());
-        assertEquals(LocalDateTime.of(2017, 8, 3, 16, 32, 47, 943000000), r.getFirstPost());
-        assertEquals(LocalDateTime.of(2017, 8, 7, 19, 30, 58, 747000000), r.getLastPost());
-        assertEquals(1L, r.getTotalAcceptedPosts());
-        assertEquals(8, r.getAvgScore());
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/analyze")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content("{\"url1\":\"http://example.com\"}"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
+    }
+
+    @Test
+    public void shouldContainCorrectValWithRequestBodyJson() throws Exception {
+
+        //When
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                .post("/analyze")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content("{\"url1\":\"http://example.com\"}"))
+                .andReturn();
+        //Then
+        String resultString = result.getResponse().getContentAsString();
+
+        assertThat(resultString, Matchers.containsString("\"analyseDate\":"));
+        assertThat(resultString, Matchers.containsString("\"url\":\"http://example.com\""));
+        assertThat(resultString, Matchers.containsString("\"totalPosts\":7"));
+        assertThat(resultString, Matchers.containsString("\"firstPost\":\"1988-05-08T12:33:22.000000001\""));
+        assertThat(resultString, Matchers.containsString("\"lastPost\":\"2019-03-04T15:12:11.000000007\""));
+        assertThat(resultString, Matchers.containsString("\"totalAcceptedPosts\":4"));
+        assertThat(resultString, Matchers.containsString("\"avgScore\":2"));
+    }
+
+    @Test
+    public void shouldReturnStatus200WithWithRequestBodyText() throws Exception {
+
+        //Then
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/analyze")
+                .contentType(MediaType.TEXT_HTML)
+                .content("url1=http://example.com"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
+    }
+
+    @Test
+    public void shouldContainCorrectValWithRequestBodyText() throws Exception {
+
+        //When
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                .post("/analyze")
+                .contentType(MediaType.TEXT_HTML)
+                .content("url1=http://example.com"))
+                .andReturn();
+        //Then
+        String resultString = result.getResponse().getContentAsString();
+
+        assertThat(resultString, Matchers.containsString("\"analyseDate\":"));
+        assertThat(resultString, Matchers.containsString("\"url\":\"http://example.com\""));
+        assertThat(resultString, Matchers.containsString("\"totalPosts\":7"));
+        assertThat(resultString, Matchers.containsString("\"firstPost\":\"1988-05-08T12:33:22.000000001\""));
+        assertThat(resultString, Matchers.containsString("\"lastPost\":\"2019-03-04T15:12:11.000000007\""));
+        assertThat(resultString, Matchers.containsString("\"totalAcceptedPosts\":4"));
+        assertThat(resultString, Matchers.containsString("\"avgScore\":2"));
     }
 }
